@@ -11,11 +11,12 @@ To start writing your own data story, please follow these steps:
 1. **Clone the repository**: Clone this repository to your local machine using the following command:
 
    ```bash
-   git clone git@github.com:ISE-FIZKarlsruhe/course-data-stories-group2.git
+   git clone git@github.com:YOUR_USERNAME/course-data-stories-group2.git
    ```
 
 2. **Start the Shmarql container with docker compose**: Navigate to the cloned repository and and run the following command:
    ```bash
+   cd course-data-stories-group2 && docker compose up -d
    cd course-data-stories-group2 && docker compose up -d
    ```
 

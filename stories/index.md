@@ -55,5 +55,5 @@ WHERE {
 }
 ORDER BY ?creatorGND ?bildindexEntity
 LIMIT 999
-</details>
 ```
+</details>
