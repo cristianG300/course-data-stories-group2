@@ -16,7 +16,7 @@ To start writing your own data story, please follow these steps:
 
 2. **Start the Shmarql container with docker compose**: Navigate to the cloned repository and and run the following command:
    ```bash
-   cd course-data-stories && docker compose up -d
+   cd course-data-stories-group2 && docker compose up -d
    ```
 
 There should now be a running instance of the NFDI4Culture Datastories running on your machine, it can be viewd at this URI:
