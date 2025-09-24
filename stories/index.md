@@ -14,12 +14,22 @@ Tommasso Guisti, Die Decke im Zimmer des Winters, 1696-1698, [CbDD](https://www.
 This data story investigates baroque ceiling paintings in Germany, based on the database of CbDD (Corpus of baroque ceiling paintings in Germany, see also [deckenmalerei.eu](https://deckenmalerei.eu)). The authors 
 
 ## SPARQL query to find additional images from Bildindex der Kunst & Architektur
+
 /// details | **Show SPARQL query 01**
     type: plain
 ``` sparql linenums="1" title="sparql-01.rq"
 --8<-- "sparql-01.rq"
 ```
 ///
+
+/// details | **Show query result 01**
+    type: plain
+``` shmarql linenums="1" title="sparql-01.rq"
+--8<-- "sparql-01.rq"
+```
+///
+
+---
 
 # Baroque ceiling paintings in Germany — map
 

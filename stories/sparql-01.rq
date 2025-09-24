@@ -5,14 +5,14 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX cto: <https://nfdi4culture.de/ontology#>
 
 SELECT DISTINCT 
-  ?creatorGND      # die GND-URI
-  ?bildindexEntity # Bildindex-URI
-  ?predicate       # über welches Property der Link läuft
-  ?label           # optionaler Label des Bildindex-Objekts
+  ?creatorGND
+  ?bildindexEntity
+  ?predicate
+  ?label
 WHERE {
   # 1) alle GND-IDs aus E6077
   ?art cto:elementOf n4c:E6077 ;
-      schema:creator    ?creatorGND .
+      schema:creator ?creatorGND .
 
   # 2) finde alle Tripel, in denen diese GNDs Objekt sind
   ?bildindexEntity ?predicate ?creatorGND .
