@@ -1,0 +1,27 @@
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX schema: <http://schema.org/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX cto: <https://nfdi4culture.de/ontology#>
+
+SELECT DISTINCT 
+  ?creatorGND      # die GND-URI
+  ?bildindexEntity # Bildindex-URI
+  ?predicate       # über welches Property der Link läuft
+  ?label           # optionaler Label des Bildindex-Objekts
+WHERE {
+  # 1) alle GND-IDs aus E6077
+  ?art cto:elementOf n4c:E6077 ;
+      schema:creator    ?creatorGND .
+
+  # 2) finde alle Tripel, in denen diese GNDs Objekt sind
+  ?bildindexEntity ?predicate ?creatorGND .
+
+  # 3) filtere nur die Subjects, die auf bildindex.de verweisen
+  FILTER regex(str(?bildindexEntity), "https?://(www\\.)?bildindex\\.de/")
+
+  # 4) optional: Label mit ausgeben
+  OPTIONAL { ?bildindexEntity rdfs:label ?label }
+}
+ORDER BY ?creatorGND ?bildindexEntity
+LIMIT 999

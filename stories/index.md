@@ -1,40 +1,25 @@
 # A Data Story about analysing research data on baroque artworks in Germany and their associated artists
 
-This is a test to see how the container and the data story is working. If you see this message I'm happy :)
+/// html | div[class='tile']
+**Authors:** Cristian Ghinea, Jacob Kühner, Niklas Spachmann
+///
+<br>
+[![Introductory Image](intro.jpg)](https://previous.bildindex.de/bilder/fmd494334a.jpg)
+/// caption
+Tommasso Guisti, Die Decke im Zimmer des Winters, 1696-1698, [CbDD](https://www.deckenmalerei.eu/7811eafd-4f5f-4b17-96c7-d0d9ab35f530), Public Domain
+///
 
-## With a SPARQL query
-<details>
-  <summary><b>SPARQL query to extract information from the Bildindex dataset</b></summary>
-    ```sparql linenums="1" title="Query to extract Bildindex data about the artists located in the CbDD dataset"
-    PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-    PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-    PREFIX schema: <http://schema.org/>
-    PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-    PREFIX cto: <https://nfdi4culture.de/ontology#>
 
-    SELECT DISTINCT 
-      ?creatorGND      # die GND-URI
-      ?bildindexEntity # Bildindex-URI
-      ?predicate       # über welches Property der Link läuft
-      ?label           # optionaler Label des Bildindex-Objekts
-    WHERE {
-      # 1) alle GND-IDs aus E6077
-      ?art cto:elementOf n4c:E6077 ;
-          schema:creator    ?creatorGND .
+**Abstract:**
+This data story investigates baroque ceiling paintings in Germany, based on the database of CbDD (Corpus of baroque ceiling paintings in Germany, see also [deckenmalerei.eu](https://deckenmalerei.eu)). The authors 
 
-      # 2) finde alle Tripel, in denen diese GNDs Objekt sind
-      ?bildindexEntity ?predicate ?creatorGND .
-
-      # 3) filtere nur die Subjects, die auf bildindex.de verweisen
-      FILTER regex(str(?bildindexEntity), "https?://(www\\.)?bildindex\\.de/")
-
-      # 4) optional: Label mit ausgeben
-      OPTIONAL { ?bildindexEntity rdfs:label ?label }
-    }
-    ORDER BY ?creatorGND ?bildindexEntity
-    LIMIT 999
-    ```
-</details>
+## SPARQL query to find additional images from Bildindex der Kunst & Architektur
+/// details | **Show SPARQL query 01**
+    type: plain
+``` sparql linenums="1" title="sparql-01.rq"
+--8<-- "sparql-01.rq"
+```
+///
 
 # Baroque ceiling paintings in Germany — map
 
@@ -86,7 +71,7 @@ This is a test to see how the container and the data story is working. If you se
   .popup-list .item {
     display: flex;
     gap: 0.6rem;
-    align-items: stretch; /* makes thumb height match text block height */
+    align-items: center; /* fixed square thumbs, don't stretch with text */
     margin-bottom: 0.5rem;
     border-bottom: 1px solid #eee;
     padding-bottom: 0.35rem;
@@ -100,20 +85,25 @@ This is a test to see how the container and the data story is working. If you se
 
   /* thumbnail column */
   .popup-list .item .thumb-wrap {
-    width: 160px;           /* thumbnail width; adjust if you want bigger/smaller */
+    width: 160px;           /* thumbnail width (square) */
+    height: 160px;          /* fixed square height -> 1:1 aspect ratio */
     flex: 0 0 160px;
     display: flex;
     align-items: center;
     justify-content: center;
+    overflow: hidden;       /* hide parts outside the square */
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+    border: 1px solid #ddd;
+    background: #fff;
   }
   .popup-list .item .thumb {
     width: 100%;
     height: 100%;
-    object-fit: cover;
-    border-radius: 4px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.25);
-    border: 1px solid #ddd;
+    object-fit: cover;      /* crop & fill the square */
+    object-position: center center; /* center the image inside the square */
     display: block;
+    border-radius: 0;       /* rounded container already applied to wrapper */
   }
 
   .popup-list a { color: #065a8a; word-break: break-all; }
