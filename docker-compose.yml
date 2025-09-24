@@ -16,3 +16,13 @@ services:
       - ./navigation.yml:/src/docs/.nav.yml
     ports:
       - "7015:8000"
+
+  # NEUER SERVICE FÜR DIE SICHERE KI-ANFRAGE
+  backend:
+    build: ./backend
+    container_name: "llm_backend"
+    restart: unless-stopped
+    env_file:
+      - .env  # Lädt den API-Schlüssel aus der .env-Datei
+    ports:
+      - "5001:5000" # Macht das Backend auf Port 5001 erreichbar

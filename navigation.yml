@@ -3,5 +3,6 @@ nav:
   - Stories:
       - Example story: story/index.md
       - 01 An Italian Data Journey: story/E6263/index.md
+      - 02 Exploring Art with SPARQL: story/cbdd_bildindex.md
   - Contribute: contribute.md
   - SPARQL Exploration: "/shmarql"
