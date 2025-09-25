@@ -2,7 +2,7 @@ nav:
   - Home: index.md
   - Stories:
       - Example story: course/index.md
-      - 01 An Italian Data Journey: course/E6263/index.md
+      - 01 An Italian Data Journey: story/E6263/index.md
       - 02 Exploring Art with SPARQL: course/cbdd_bildindex.md
   - Contribute: contribute.md
   - SPARQL Exploration: "/shmarql"

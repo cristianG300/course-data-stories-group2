@@ -1,4 +1,5 @@
 import os
+import requests
 import google.generativeai as genai
 from flask import Flask, request, jsonify
 from flask_cors import CORS
@@ -12,7 +13,6 @@ app = Flask(__name__)
 # Allow requests from your frontend (running on a different port)
 CORS(app)
 
-# Configure the Gemini API with your secret key
 try:
     api_key = os.environ["GEMINI_API_KEY"]
     if not api_key:
@@ -44,6 +44,46 @@ def generate_story():
         return jsonify({"story": response.text})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+# --------------------------------------------------------------------------
+# --- NEUER SPARQL-PROXY-ENDPUNKT (WIRD HINZUGEFÜGT) ---
+# --------------------------------------------------------------------------
+REAL_SPARQL_ENDPOINT = "https://datastoriesnfdi4c.ise.fiz-karlsruhe.de/sparql"
+
+@app.route('/sparql', methods=['GET', 'POST'])
+def sparql_proxy():
+    """
+    This endpoint takes SPARQL requests, forwards them to the real 
+    endpoint, and returns the response. This solves the CORS problem.
+    """
+    try:
+        if request.method == 'POST':
+            query = request.data
+            headers = {
+                'Content-Type': request.headers.get('Content-Type'),
+                'Accept': request.headers.get('Accept')
+            }
+        else: # GET
+            query = None # GET requests use params, not data
+            headers = {'Accept': 'application/sparql-results+json'}
+        
+        # Make the request to the real SPARQL endpoint
+        response = requests.request(
+            method=request.method,
+            url=REAL_SPARQL_ENDPOINT,
+            params=request.args,
+            data=query,
+            headers=headers,
+            timeout=30 # 30-second timeout
+        )
+        # Return the response from the SPARQL endpoint directly to the browser
+        return response.content, response.status_code, response.headers.items()
+
+    except requests.exceptions.RequestException as e:
+        print(f"Error forwarding SPARQL request: {e}")
+        return "Error connecting to the SPARQL endpoint.", 502
+
+# --------------------------------------------------------------------------
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
