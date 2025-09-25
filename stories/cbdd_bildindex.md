@@ -1,4 +1,13 @@
-# AI Artist Storyteller
+### An Interactive Exploration: The AI Artist Storyteller
+
+To move beyond traditional data visualization and offer a more narrative perspective on our dataset, we developed an interactive tool that brings the artists within the knowledge graph to life. This component allows users to select an artist and dynamically generate a short, first-person story that recounts their career and achievements based on the available factual data.
+
+The process is driven by a combination of live data retrieval and generative AI. Here is a brief overview of the workflow:
+
+1.  **Data Retrieval:** When an artist is selected, the browser sends a SPARQL query to our knowledge graph via a Python Flask proxy. This query gathers key information about the artist's known works, including their creation periods, funders, art forms, and mediums.
+2.  **Prompt Engineering:** The retrieved data is formatted into a structured text. This text is then sent to our backend and embedded into a carefully designed prompt, which instructs the AI to act as the selected artist. The prompt specifically directs the model to create a concise, factual account using *only* the data provided.
+3.  **AI-Powered Generation:** The backend uses the Groq API to pass the complete prompt to the `meta-llama/llama-4-scout-17b-16e-instruct` model. The AI then synthesizes the factual data into a cohesive, first-person narrative.
+4.  **Display:** The final story is returned to the user's browser and displayed, offering an engaging and personal glimpse into the artist's life and work as represented in our data.
 
 This interactive page brings the data from the knowledge graph to life. Select an artist from the list, and an AI will generate a unique story from their perspective, based on real data about their works, funders, and places of activity.
 
