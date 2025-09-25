@@ -1,6 +1,6 @@
 # AI Artist Storyteller
 
-This interactive page brings the data from the knowledge graph to life. Select an artist from the list, and an AI will generate a unique story from their perspective, based on real data about their works, patrons, and places of activity.
+This interactive page brings the data from the knowledge graph to life. Select an artist from the list, and an AI will generate a unique story from their perspective, based on real data about their works, funders, and places of activity.
 
 <div class="llm-interactive-area">
     <p><b>1. Select an Artist:</b></p>
@@ -147,14 +147,20 @@ This interactive page brings the data from the knowledge graph to life. Select a
                     PREFIX schema: <http://schema.org/>
                     PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
                     PREFIX cto: <https://nfdi4culture.de/ontology#>
-                    SELECT DISTINCT ?workLabel ?dateLabel ?locationLabel ?patronLabel WHERE {
-                        <${artistUri}> rdfs:label ?artistLabel .
+                    SELECT DISTINCT ?workLabel ?funderLabel ?creationPeriod ?artform ?artMedium
+                    WHERE {
                         ?work schema:creator <${artistUri}> .
+                        
                         OPTIONAL { ?work rdfs:label ?workLabel . }
-                        OPTIONAL { ?work cto:created_at ?date . ?date rdfs:label ?dateLabel . }
-                        OPTIONAL { ?work cto:located_in ?loc . ?loc rdfs:label ?locationLabel . }
-                        OPTIONAL { ?work cto:funded_by ?patron . ?patron rdfs:label ?patronLabel . }
-                    } LIMIT 150`;
+                        OPTIONAL { 
+                            ?work schema:funder ?funder . 
+                            ?funder rdfs:label ?funderLabel . 
+                        }
+                        OPTIONAL { ?work cto:creationPeriod ?creationPeriod . }
+                        OPTIONAL { ?work schema:artform ?artform . }
+                        OPTIONAL { ?work schema:artMedium ?artMedium . }
+                    } 
+                    LIMIT 150`;
                 const artworkResults = await querySparql(artworksQuery);
                 if (artworkResults.length === 0) {
                     storyOutput.innerHTML = '<p>No detailed artwork data could be found for this artist to generate a story.</p>';
@@ -164,9 +170,10 @@ This interactive page brings the data from the knowledge graph to life. Select a
                 const formattedData = artworkResults.map(r => {
                     let parts = [];
                     if (r.workLabel?.value) parts.push(`my work "${r.workLabel.value}"`);
-                    if (r.dateLabel?.value) parts.push(`dated ${r.dateLabel.value}`);
-                    if (r.locationLabel?.value) parts.push(`at ${r.locationLabel.value}`);
-                    if (r.patronLabel?.value) parts.push(`commissioned by ${r.patronLabel.value}`);
+                    if (r.creationPeriod?.value) parts.push(`created in the period of "${r.creationPeriod.value}"`);
+                    if (r.artform?.value) parts.push(`using the art form "${r.artform.value}"`);
+                    if (r.artMedium?.value) parts.push(`with the medium "${r.artMedium.value}"`);
+                    if (r.funderLabel?.value) parts.push(`funded by ${r.funderLabel.value}`);
                     return `- ${parts.join(', ')}`;
                 }).join('\\n');
 

@@ -33,10 +33,13 @@ def generate_story():
     artist_data = data['artistData']
 
     prompt = f"""
-        Du bist ein barocker Künstler namens {artist_name}. Erzähle eine kurze, fesselnde Geschichte über dein Leben und deine Arbeit in der Ich-Perspektive.
-        Nutze die folgenden Daten als Grundlage: {artist_data}.
-        Webe die Informationen über deine Werke, Orte und Förderer natürlich in die Geschichte ein.
-        Beginne mit einer fesselnden Einleitung.
+        You are the Baroque artist {artist_name}. Using only the key information from {artist_data}, write a concise and factual first-person account of your work.
+        Be direct and avoid elaborate storytelling. Make sure to include:
+        - Your significant works.
+        - The time periods of your creations
+        - The specific locations where you created them
+        - Your funders or patrons.
+        - The art forms (e.g., painting) and mediums (e.g., fresco) you used.
     """
 
     try:
@@ -54,7 +57,7 @@ REAL_SPARQL_ENDPOINT = "https://datastoriesnfdi4c.ise.fiz-karlsruhe.de/sparql"
 def sparql_proxy():
     """
     This endpoint takes SPARQL requests, forwards them to the real 
-    endpoint, and returns the response. This solves the CORS problem.
+    endpoint, and returns the response.
     """
     try:
         if request.method == 'POST':
