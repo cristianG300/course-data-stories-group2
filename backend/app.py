@@ -58,6 +58,7 @@ def generate_story():
         # Simply comment out the block you don't want to use.
 
         # --- OPTION 1: GROQ (meta-llama/llama-4-scout-17b-16e-instruct) ---
+        # for true open source model use (llama-3.3-70b-versatile)
         # This block is currently ACTIVE.
         if not groq_client:
             raise RuntimeError("Groq client is not initialized.")
