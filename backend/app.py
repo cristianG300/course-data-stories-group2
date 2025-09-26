@@ -22,19 +22,7 @@ except Exception as e:
     print(f"Warning: Could not initialize Groq client. Check GROQ_API_KEY. Error: {e}")
     groq_client = None
 
-# Configure and Initialize Gemini Client
-""" try:
-    api_key = os.environ["GEMINI_API_KEY"]
-    if not api_key:
-        raise KeyError
-    genai.configure(api_key=api_key)
-    model = genai.GenerativeModel('gemini-1.5-flash-latest')
-except KeyError:
-    raise RuntimeError("GEMINI_API_KEY not found or is empty. Please check your .env file.") """
-
 def format_special_words(text):
-    """Finds words like ALL_CAPS_WITH_UNDERSCORES and formats them nicely."""
-    
     # This pattern finds words with at least one underscore,
     # consisting only of uppercase letters.
     pattern = r'\b[A-Z]+(?:_[A-Z]+)+\b'
@@ -56,7 +44,7 @@ def generate_story():
     artist_name = data['artistName']
     artist_data = data['artistData']
 
-    # This is your original prompt, used for both models
+    # This is the original prompt
     user_prompt = f"""
         You are the Baroque artist {artist_name}. Using only the key information from {artist_data}, write a concise and factual first-person account of your work.
         Be direct and avoid elaborate storytelling. Make sure to include:
@@ -69,12 +57,8 @@ def generate_story():
     
     story = ""
     try:
-        # --- CHOOSE YOUR AI MODEL HERE ---
-        # Simply comment out the block you don't want to use.
-
-        # --- OPTION 1: GROQ (meta-llama/llama-4-scout-17b-16e-instruct) ---
+        # GROQ (meta-llama/llama-4-scout-17b-16e-instruct)
         # for true open source model use (llama-3.3-70b-versatile)
-        # This block is currently ACTIVE.
         if not groq_client:
             raise RuntimeError("Groq client is not initialized.")
         chat_completion = groq_client.chat.completions.create(
@@ -92,15 +76,6 @@ def generate_story():
         )
         story = chat_completion.choices[0].message.content
 
-        # --- OPTION 2: GOOGLE GEMINI (gemini-1.5-flash-latest) ---
-        # This block is currently COMMENTED OUT. To use it, comment out the Groq block above
-        # and uncomment this block.
-        #
-        # if not gemini_model:
-        #     raise RuntimeError("Gemini model is not initialized.")
-        # response = gemini_model.generate_content(user_prompt)
-        # story = response.text
-
         story = format_special_words(story)
     
         return jsonify({"story": story})
@@ -112,7 +87,7 @@ def generate_story():
     
 
 # --------------------------------------------------------------------------
-# --- NEUER SPARQL-PROXY-ENDPUNKT (WIRD HINZUGEFÜGT) ---
+# --- NEW SPARQL PROXY ENDPOINT (TO BE ADDED) ---
 # --------------------------------------------------------------------------
 REAL_SPARQL_ENDPOINT = "https://datastoriesnfdi4c.ise.fiz-karlsruhe.de/sparql"
 
@@ -144,8 +119,6 @@ def sparql_proxy():
     except requests.exceptions.RequestException as e:
         print(f"Error forwarding SPARQL request: {e}")
         return "Error connecting to the SPARQL endpoint.", 502
-
-# --------------------------------------------------------------------------
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)

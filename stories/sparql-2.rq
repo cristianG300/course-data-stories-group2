@@ -1,0 +1,16 @@
+PREFIX schema1: <http://schema.org/>
+PREFIX cto: <https://nfdi4culture.de/ontology#>
+PREFIX nfdicore: <https://nfdi.fiz-karlsruhe.de/ontology/>
+PREFIX n4c: <https://nfdi4culture.de/id/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?label (COUNT(?artwork) AS ?creatorcount)
+WHERE {
+  ?artwork a schema1:VisualArtwork ;
+           schema1:creator ?creator ;
+           cto:elementOf n4c:E6077 .
+  OPTIONAL { ?creator rdfs:label ?label }
+}
+GROUP BY ?label
+ORDER BY DESC(?creatorcount)

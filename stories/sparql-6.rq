@@ -4,31 +4,31 @@ PREFIX cto:    <https://nfdi4culture.de/ontology#>
 PREFIX n4c:    <https://nfdi4culture.de/id/>
 
 SELECT
-  ?creatorGND
+  ?creatorCbDD
   ?artistName
-  (?countE6077 + ?countBildindex AS ?countTotal)
-  ?countE6077
+  (?countCbbD + ?countBildindex AS ?countTotal)
+  ?countCbbD
   ?countBildindex
 WHERE {
   # E6077 counts
   {
-    SELECT ?creatorGND (COUNT(DISTINCT ?art) AS ?countE6077)
+    SELECT ?creatorCbDD (COUNT(DISTINCT ?art) AS ?countCbbD)
     WHERE {
       ?art cto:elementOf n4c:E6077 ;
            a/rdfs:subClassOf* schema:VisualArtwork ;
-           (schema:creator|schema:artist) ?creatorGND .
+           (schema:creator|schema:artist) ?creatorCbDD .
     }
-    GROUP BY ?creatorGND
+    GROUP BY ?creatorCbDD
   }
 
   # Bildindex counts (left join so artists with 0 still show up)
   OPTIONAL {
-    SELECT ?creatorGND (COUNT(DISTINCT ?bild) AS ?_countBildindex)
+    SELECT ?creatorCbDD (COUNT(DISTINCT ?bild) AS ?_countBildindex)
     WHERE {
-      ?bild ?p ?creatorGND .
+      ?bild ?p ?creatorCbDD .
       FILTER regex(str(?bildindexEntity), "https?://(www\\.)?bildindex\\.de/")
     }
-    GROUP BY ?creatorGND
+    GROUP BY ?creatorCbDD
   }
 
   # normalize OPTIONAL -> 0
@@ -36,9 +36,9 @@ WHERE {
 
   # Label (sample to avoid duplicates)
   OPTIONAL {
-    SELECT ?creatorGND (SAMPLE(?lbl) AS ?artistName)
-    WHERE { ?creatorGND rdfs:label ?lbl }
-    GROUP BY ?creatorGND
+    SELECT ?creatorCbDD (SAMPLE(?lbl) AS ?artistName)
+    WHERE { ?creatorCbDD rdfs:label ?lbl }
+    GROUP BY ?creatorCbDD
   }
 }
 ORDER BY DESC(?countTotal)

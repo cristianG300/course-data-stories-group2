@@ -1,17 +1,14 @@
 services:
   shmarql:
-    # use Dockerfile in the same directory
     build: .
     image: "${SHMARQL_IMAGE:-registry.gitlab.rlp.net/adwmainz/nfdi4culture/knowledge-graph/shmarql/datastories}"
     container_name: "${SHMARQL_CONTAINER_NAME:-shmarql}"
     restart: unless-stopped
-#    command: mkdocs serve -a 0.0.0.0:8000
     environment:
       - "TZ=Europe/Berlin"
       - "SCHEME=${SHMARQL_SCHEME:-http://}"
       - "DOMAIN=${SHMARQL_DOMAIN:-localhost}"
       - "PORT=7014"
-#      - "ENDPOINT=https://datastoriesnfdi4c.ise.fiz-karlsruhe.de/sparql"
       - "ENDPOINT=http://backend:5000/sparql"
       - "DEBUG=1"
       - "WATCH_DOCS=1"
@@ -24,12 +21,12 @@ services:
     ports:
       - "7015:8000"
 
-  # NEUER SERVICE FÜR DIE SICHERE KI-ANFRAGE
+  # NEW SERVICE FOR SECURE AI REQUESTS
   backend:
      build: ./backend
      container_name: "llm_backend"
      restart: unless-stopped
      env_file:
-       - .env  # Lädt den API-Schlüssel aus der .env-Datei
+       - .env  # Loads the API key from the .env file
      ports:
-       - "5001:5000" # Macht das Backend auf Port 5001 erreichbar
+       - "5001:5000" # Makes the backend accessible on port 5001

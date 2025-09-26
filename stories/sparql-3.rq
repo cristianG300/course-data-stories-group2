@@ -1,0 +1,13 @@
+PREFIX schema1: <http://schema.org/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX cto: <https://nfdi4culture.de/ontology#>
+PREFIX n4c: <https://nfdi4culture.de/id/>
+
+SELECT ?artform (COUNT(?artwork) AS ?count)
+WHERE {
+  ?artwork rdf:type schema1:VisualArtwork ;
+           schema1:artform ?artform ;
+           cto:elementOf n4c:E6077 .
+}
+GROUP BY ?artform
+ORDER BY DESC(?count)

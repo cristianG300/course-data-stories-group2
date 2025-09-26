@@ -1,0 +1,37 @@
+PREFIX schema1: <http://schema.org/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX cto: <https://nfdi4culture.de/ontology#>
+PREFIX n4c: <https://nfdi4culture.de/id/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+SELECT ?interval (COUNT(?artwork) AS ?count)
+WHERE {
+  ?artwork rdf:type schema1:VisualArtwork ;
+           cto:elementOf n4c:E6077 ;
+           cto:creationPeriod ?creationPeriod .
+
+  BIND(STR(?creationPeriod) AS ?cpStr)
+
+  BIND(
+    IF(REGEX(?cpStr, "^[0-9]{4}"),
+       # case 1
+       CONCAT(
+         STR(FLOOR(xsd:integer(SUBSTR(?cpStr, 1, 4)) / 10) * 10),
+         "-",
+         STR(FLOOR(xsd:integer(SUBSTR(?cpStr, 1, 4)) / 10) * 10 + 9)
+       ),
+       IF(REGEX(?cpStr, "[0-9]{4}$"),
+          # case 2
+          CONCAT(
+            STR(FLOOR(xsd:integer(SUBSTR(?cpStr, STRLEN(?cpStr) - 3, 4)) / 10) * 10),
+            "-",
+            STR(FLOOR(xsd:integer(SUBSTR(?cpStr, STRLEN(?cpStr) - 3, 4)) / 10) * 10 + 9)
+          ),
+          # case 3
+          ?cpStr
+       )
+    ) AS ?interval
+  )
+}
+GROUP BY ?interval
+ORDER BY DESC(?count)
