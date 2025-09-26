@@ -13,7 +13,13 @@ Tommasso Guisti, Die Decke im Zimmer des Winters, 1696-1698, [CbDD](https://www.
 **Abstract:**
 This data story investigates baroque ceiling paintings in Germany, based on the database of CbDD (Corpus of baroque ceiling paintings in Germany, see also [deckenmalerei.eu](https://deckenmalerei.eu)). The authors 
 
-## SPARQL query to find additional images from Bildindex der Kunst & Architektur
+## SPARQL queries for additional insights from Bildindex der Kunst & Architektur
+
+In addition to the existing artworks from CbDD, we want to further discover artworks that artists of the dataset have created. Therefore, the database [Bildindex der Kunst & Architektur](https://www.bildindex.de/) is being examined. Over 80 cultural and scientific institutions publish their image and data collections on art and architecture on the Internet. While the website doesn't provide a SPARQL endpoint, images of artists from CbDD are being found by the following queries, which are being executed on the NFDI4Culture knowledge graph:
+
+### SPARQL query 01: count amount of artworks from NFDI4Culture, Bildindex, and total amount of artworks per artist
+
+This query counts all artworks grouped by each artist and sorted in a descending order. It also differentiates between artworks found in the NFDI4Culture dataset, as well as the ones that are being found in the Bildindex dataset. When counting all artworks in both datasets, duplicates may occur, which are then counted and can slightly skew the results of the counts. This is because there is no SPARQL endpoint in the image index and the names of the entities in the two datasets may differ despite the artworks being identical. Furthermore, the query in the image index datasets cannot distinguish whether the entities are the artwork itself, a section of the artwork, or an image of an artwork. Therefore, the figures should only be seen as guidelines and not as definitive results.
 
 /// details | **Show SPARQL query 01**
     type: plain
@@ -26,6 +32,26 @@ This data story investigates baroque ceiling paintings in Germany, based on the 
     type: plain
 ``` shmarql linenums="1" title="sparql-01.rq"
 --8<-- "sparql-01.rq"
+```
+///
+
+### SPARQL query 02: find additional images from Bildindex der Kunst & Architektur
+
+/// details | **Show SPARQL query 02**
+    type: plain
+``` sparql linenums="1" title="sparql-02.rq"
+--8<-- "sparql-02.rq"
+```
+///
+
+<p style="color: gray; font-style: italic;">
+  Hint: The query loading time may be longer due to large amounts of data (11,734 Bildindex entries).
+</p>
+
+/// details | **Show query result 02**
+    type: plain
+``` shmarql linenums="1" title="sparql-02.rq"
+--8<-- "sparql-02.rq"
 ```
 ///
 
