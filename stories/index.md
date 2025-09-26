@@ -206,6 +206,7 @@ This data story investigates baroque ceiling paintings in Germany, based on the 
 
   // 3) Query the same-origin /sparql exposed by SHMARQL
   const res = await fetch('http://localhost:5001/sparql', {
+
     method: 'POST',
     headers: {
       'Accept': 'application/sparql-results+json',
@@ -374,6 +375,7 @@ This data story investigates baroque ceiling paintings in Germany, based on the 
     console.warn('No markers created - check SPARQL response for eLat/eLon bindings. See console logs.');
   }
 })();
+  
 </script>
 
 ### An Interactive Exploration: The AI Artist Storyteller

@@ -10,6 +10,7 @@ The project was developed as part of a course in collaboration with FIZ Karlsruh
 
 ## ✨ Features
 
+
 * **Interactive Map Visualization**: Displays the geographical locations of artworks from the knowledge graph. Locations with multiple works are clustered for a clearer overview.
 * **Detail Popups**: Clicking on a map point reveals detailed information about the artworks at that location, including title, artist, location, and a thumbnail image.
 * **AI-Powered Storyteller**:

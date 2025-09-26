@@ -1,5 +1,7 @@
 services:
   shmarql:
+    # use Dockerfile in the same directory
+    build: .
     image: "${SHMARQL_IMAGE:-registry.gitlab.rlp.net/adwmainz/nfdi4culture/knowledge-graph/shmarql/datastories}"
     container_name: "${SHMARQL_CONTAINER_NAME:-shmarql}"
     restart: unless-stopped
@@ -16,6 +18,9 @@ services:
     volumes:
       - ./stories:/src/docs/course
       - ./navigation.yml:/src/docs/.nav.yml
+      - ./mkdocs.yml:/src/mkdocs.yml
+      # optional: to persist the built site (first run still needs one build) - can be commented out if not needed
+      - ./site:/src/site
     ports:
       - "7015:8000"
 
