@@ -1,0 +1,41 @@
+# Dependencies
+node_modules
+__pycache__
+venv
+.venv
+
+# Build files
+build/
+site/
+
+*.egg-info/
+dist/
+.eggs/
+
+.DS_Store
+# Prevent context bloat when building images
+.dockerignore
+docker-compose.override.yml
+
+# Caches and logs
+*.cpuprofile
+*.log
+*.tsbuildinfo
+.cache
+.eslintcache
+
+# -----------------------------------------------------------------------------
+# General
+# -----------------------------------------------------------------------------
+
+# Never ignore .gitkeep files
+!**/.gitkeep
+
+# OSX internals
+.DS_Store
+
+# Temporary files
+tmp
+
+# Fonts
+NantesWeb-Bold.woff2

@@ -1,0 +1,61 @@
+site_name: Baroque Ceilings – Data Story
+theme:
+  name: nfdi4culture
+  language: en
+
+repo_url: https://gitlab.rlp.net/adwmainz/nfdi4culture/knowledge-graph/shmarql/datastories
+
+plugins:
+  - search
+
+extra_javascript:
+  - overrides/assets/javascripts/jquery.dataTables.min.js
+  - overrides/assets/vendor/sgvizler2.js
+  - overrides/assets/javascripts/extra.js
+  - overrides/assets/vendor/plotly-3.0.1.min.js
+
+extra_css:
+  - overrides/assets/stylesheets/jquery.dataTables.min.css
+  - overrides/assets/stylesheets/extra.css
+
+markdown_extensions:
+  - abbr
+  - attr_list
+  - footnotes
+  - md_in_html
+  - shmarql
+  - toc:
+      permalink: false
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.blocks.admonition
+  - pymdownx.blocks.caption
+  - pymdownx.blocks.definition
+  - pymdownx.blocks.details
+  - pymdownx.blocks.html
+  - pymdownx.blocks.tab
+  - pymdownx.caret
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.magiclink:
+      normalize_issue_symbols: true
+      repo_url_shorthand: true
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.snippets:
+      base_path:
+        - docs
+        - docs/course
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde

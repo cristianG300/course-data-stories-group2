@@ -29,6 +29,7 @@ This data story investigates baroque ceiling paintings in Germany, based on the 
 ```
 ///
 
+
 ---
 
 # Baroque ceiling paintings in Germany — map
