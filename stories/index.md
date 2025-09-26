@@ -1,59 +1,587 @@
 # A Data Story about analysing research data on baroque artworks in Germany and their associated artists
 
-This is a test to see how the container and the data story is working. If you see this message I'm happy :)
-
-## With a SPARQL query
-<details>
-  <summary><b>SPARQL query to extract information from the Bildindex dataset</b></summary>
-```sparql linenums="1" title="Query to extract Bildindex data about the artists located in the CbDD dataset"
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-PREFIX schema: <http://schema.org/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX wds: <http://www.wikidata.org/entity/statement/>
-PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
-PREFIX dct: <http://purl.org/dc/terms/>
-PREFIX dc: <http://purl.org/dc/elements/1.1/>
-PREFIX dbr: <http://dbpedia.org/resource/>
-PREFIX rico: <https://www.ica.org/standards/RiC/ontology#>
-PREFIX geo: <http://www.w3.org/2003/01/geo/wgs84_pos#>
-PREFIX sh: <http://www.w3.org/ns/shacl#>
-PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-PREFIX virtrdfdata: <http://www.openlinksw.com/virtrdf-data-formats#>
-PREFIX virtrdf: <http://www.openlinksw.com/schemas/virtrdf#>
-PREFIX fabio: <http://purl.org/spar/fabio/>
-PREFIX swrl: <http://www.w3.org/2003/11/swrl#>
-PREFIX dcat: <http://www.w3.org/ns/dcat#>
-PREFIX shmarql: <https://shmarql.com/>
-PREFIX cto: <https://nfdi4culture.de/ontology#>
-PREFIX n4c: <https://nfdi4culture.de/id/>
-PREFIX nfdicore: <https://nfdi.fiz-karlsruhe.de/ontology/>
-PREFIX factgrid: <https://database.factgrid.de/entity/>
+/// html | div[class='tile']
+**Authors:** Cristian Ghinea, Jacob Kühner, Niklas Spachmann
+///
+<br>
+[![Introductory Image](intro.jpg)](https://previous.bildindex.de/bilder/fmd494334a.jpg)
+/// caption
+Tommasso Guisti, Die Decke im Zimmer des Winters, 1696-1698, [CbDD](https://www.deckenmalerei.eu/7811eafd-4f5f-4b17-96c7-d0d9ab35f530), Public Domain
+///
 
 
-SELECT DISTINCT 
-  ?creatorGND      # die GND-URI
-  ?bildindexEntity # Bildindex-URI
-  ?predicate       # über welches Property der Link läuft
-  ?label           # optionaler Label des Bildindex-Objekts
-WHERE {
-  # 1) alle GND-IDs aus E6077
-  ?art cto:elementOf n4c:E6077 ;
-       schema:creator    ?creatorGND .
+**Abstract:**
+This data story investigates baroque ceiling paintings in Germany, based on the database of CbDD (Corpus of baroque ceiling paintings in Germany, see also [deckenmalerei.eu](https://deckenmalerei.eu)). The authors 
 
-  # 2) finde alle Tripel, in denen diese GNDs Objekt sind
-  ?bildindexEntity ?predicate ?creatorGND .
+## SPARQL query to find additional images from Bildindex der Kunst & Architektur
 
-  # 3) filtere nur die Subjects, die auf bildindex.de verweisen
-  FILTER regex(str(?bildindexEntity), "https?://(www\\.)?bildindex\\.de/")
-
-  # 4) optional: Label mit ausgeben
-  OPTIONAL { ?bildindexEntity rdfs:label ?label }
-}
-ORDER BY ?creatorGND ?bildindexEntity
-LIMIT 999
+/// details | **Show SPARQL query 01**
+    type: plain
+``` sparql linenums="1" title="sparql-01.rq"
+--8<-- "sparql-01.rq"
 ```
-</details>
+///
+
+/// details | **Show query result 01**
+    type: plain
+``` shmarql linenums="1" title="sparql-01.rq"
+--8<-- "sparql-01.rq"
+```
+///
+
+---
+
+# Baroque ceiling paintings in Germany — map
+
+<div id="map" style="height: 70vh; border-radius: 8px; margin: 1rem 0;"></div>
+
+<!-- Leaflet CSS/JS (from CDN) -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+<!-- Add custom styles for cluster-count icons and popup list -->
+<style>
+  /* cluster count icon */
+  .cluster-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,120,200,0.95);
+    color: white;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    font-weight: 600;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.6);
+    border: 2px solid white;
+  }
+  .single-marker-dot {
+    width: 12px;
+    height: 12px;
+    background: rgba(0,120,200,0.95);
+    border-radius: 50%;
+    border: 2px solid white;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.6);
+  }
+
+  /* popup contents: fixed size and scrollable */
+  /* widened to make space for thumbnails on the right */
+  .popup-list {
+    width: 520px;     /* increased from 320 to allow image column */
+    height: 300px;
+    overflow-y: auto;
+    box-sizing: border-box;
+    padding: 0.4rem;
+    font-size: 0.9rem;
+  }
+
+  /* each item is a two-column row: meta (left) + thumbnail (right) */
+  .popup-list .item {
+    display: flex;
+    gap: 0.6rem;
+    align-items: center; /* fixed square thumbs, don't stretch with text */
+    margin-bottom: 0.5rem;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 0.35rem;
+  }
+
+  .popup-list .item .meta {
+    flex: 1 1 auto;
+    min-width: 0; /* for proper word-wrap inside flex */
+  }
+  .popup-list .item .meta strong { display:block; font-weight:600; margin-bottom:0.15rem; }
+
+  /* thumbnail column */
+  .popup-list .item .thumb-wrap {
+    width: 160px;           /* thumbnail width (square) */
+    height: 160px;          /* fixed square height -> 1:1 aspect ratio */
+    flex: 0 0 160px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;       /* hide parts outside the square */
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+    border: 1px solid #ddd;
+    background: #fff;
+  }
+  .popup-list .item .thumb {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;      /* crop & fill the square */
+    object-position: center center; /* center the image inside the square */
+    display: block;
+    border-radius: 0;       /* rounded container already applied to wrapper */
+  }
+
+  .popup-list a { color: #065a8a; word-break: break-all; }
+</style>
+
+<script>
+(async function () {
+  // 1) Create the map
+  const map = L.map('map', { scrollWheelZoom: true }).setView([51.2, 10.4], 6); // Germany-ish
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 18,
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+
+  // 2) SPARQL code
+  const sparql = `
+  PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+  PREFIX schema: <http://schema.org/>
+  PREFIX geo: <http://www.w3.org/2003/01/geo/wgs84_pos#>
+  PREFIX geos: <http://www.opengis.net/ont/geosparql#>
+  PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+  PREFIX cto: <https://nfdi4culture.de/ontology#>
+  PREFIX nfdi4culture: <https://nfdi4culture.de/id/>
+  PREFIX gndo: <https://d-nb.info/standards/elementset/gnd#>
+
+  SELECT DISTINCT
+    ?creatorGND
+    ?art    ?eLoc    ?eLat    ?eLon    ?nameArtist    ?nameLoc
+    ?bild   ?bLoc    ?bLat    ?bLon    ?nameArt    ?imgUrl
+  WHERE {
+    ## 1) Test auf 5 verschiedene Künstler-GNDs
+    {
+      SELECT DISTINCT ?creatorGND WHERE {
+        ?art cto:elementOf nfdi4culture:E6077 ;
+            a/rdfs:subClassOf* schema:VisualArtwork ;
+            (schema:creator|schema:artist) ?creatorGND .
+      }
+      LIMIT 999
+    }
+
+    ## 2) E6077 artwork
+    ?art cto:elementOf nfdi4culture:E6077 ;
+        (schema:creator|schema:artist) ?creatorGND .
+
+    # try to get a deckenmalerei location
+    OPTIONAL {
+      ?art cto:relatedLocation ?deckLoc .
+      FILTER (STRSTARTS(STR(?deckLoc), "https://www.deckenmalerei.eu/"))
+    }
+
+    # fallback: a GND location
+    OPTIONAL {
+      ?art cto:relatedLocation ?gndLoc .
+      FILTER STRSTARTS(STR(?gndLoc), "https://d-nb.info/gnd/")
+    }
+
+    # pick deckenmalerei if present, otherwise GND
+    BIND( COALESCE(?deckLoc, ?gndLoc) AS ?eLoc )
+    FILTER(BOUND(?eLoc))
+
+    ## Direct coordinates (deckenmalerei.eu etc.)
+    OPTIONAL {
+      ?eLoc schema:latitude  ?eLat ;
+            schema:longitude ?eLon .
+    }
+    ?creatorGND rdfs:label ?nameArtist .
+    ?art rdfs:label ?nameArt .
+    ?eLoc rdfs:label ?nameLoc .
+    ?art schema:image ?imgUrl .
+
+    ## 3) Bildindex-Einträge desselben Künstlers + Location
+    ?bild ?predicate ?creatorGND .
+    FILTER (STRSTARTS(STR(?bild), "http://www.bildindex.de/"))
+
+    OPTIONAL {
+      ?bild cto:relatedLocation ?bLoc .
+
+      ## direkte Koordinaten am bLoc
+      OPTIONAL {
+        SERVICE SILENT <https://zbw.eu/beta/sparql-lab/sparql> {
+          ?bLoc gndo:place ?place.
+          ?place  geos:hasGeometry ?geom .
+          ?geom   geos:asWKT ?bWKT .
+        }
+      }
+    }
+  }
+  ORDER BY ?creatorGND
+  `;
+
+  // 3) Query the same-origin /sparql exposed by SHMARQL
+  const res = await fetch('http://localhost:5001/sparql', {
+    method: 'POST',
+    headers: {
+      'Accept': 'application/sparql-results+json',
+      'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
+    },
+    body: new URLSearchParams({ query: sparql })
+  });
+  if (!res.ok) {
+    console.error('SPARQL error', res.status, await res.text());
+    return;
+  }
+  const json = await res.json();
+
+  // helper: robust number parsing (accept "49.2", "49,2", trim)
+  function toNumber(val) {
+    if (val == null) return null;
+    const s = String(val).trim().replace(',', '.');
+    const n = Number(s);
+    return Number.isFinite(n) ? n : null;
+  }
+
+  // 4) Transform rows -> grouped markers
+  const rows = json.results?.bindings || [];
+  const groups = new Map(); // key "lat,lon" => array of row objects
+
+  for (const row of rows) {
+    const rawLat = row.eLat?.value ?? null;
+    const rawLon = row.eLon?.value ?? null;
+    const latNum = toNumber(rawLat);
+    const lonNum = toNumber(rawLon);
+    if (latNum == null || lonNum == null) continue;
+
+    const key = `${latNum.toFixed(6)},${lonNum.toFixed(6)}`; // stable key
+    if (!groups.has(key)) groups.set(key, { lat: latNum, lon: lonNum, rows: [] });
+    groups.get(key).rows.push(row);
+  }
+
+  const markers = [];
+  for (const [key, g] of groups.entries()) {
+    // dedupe rows for this location so count and popup reflect unique entries
+    const seenLocation = new Set();
+    const dedupRows = [];
+    for (const r of g.rows) {
+      const artUri = (r.art?.value || '').trim();
+      const artName = (r.nameArt?.value || '').trim();
+      const artistUri = (r.creatorGND?.value || '').trim();
+      const artistName = (r.nameArtist?.value || '').trim();
+      const locUri = (r.eLoc?.value || '').trim();
+      const locName = (r.nameLoc?.value || '').trim();
+      const k = `${artUri}|${artName}|${artistUri}|${artistName}|${locUri}|${locName}`;
+      if (seenLocation.has(k)) continue;
+      seenLocation.add(k);
+      dedupRows.push(r);
+    }
+
+    const count = dedupRows.length;
+    if (count === 0) continue; // nothing to show
+
+    let icon;
+    if (count > 1) {
+      icon = L.divIcon({
+        className: '',
+        html: `<div class="cluster-count">${count}</div>`,
+        iconSize: [30, 30],
+        iconAnchor: [15, 15]
+      });
+    } else {
+      icon = L.divIcon({
+        className: '',
+        html: `<div class="single-marker-dot"></div>`,
+        iconSize: [18, 18],
+        iconAnchor: [9, 9]
+      });
+    }
+
+    const latlng = L.latLng(g.lat, g.lon);
+    const m = L.marker(latlng, { icon }).addTo(map);
+    // attach deduped rows to the marker for use in the popup
+    m._dedupRows = dedupRows;
+
+    // click handler shows a fixed-size scrollable popup with the list of unique entries
+    m.on('click', function () {
+        // prepare popup HTML
+        // small helper to avoid injecting raw HTML from labels
+        function escapeHtml(s) {
+          return String(s || '').replace(/[&<>"']/g, function (c) {
+            return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]);
+          });
+        }
+
+        const rowsForPopup = this._dedupRows || [];
+        const items = rowsForPopup.map(r => {
+          const nameArt = r.nameArt?.value || '—';
+          const nameLoc = r.nameLoc?.value || '—';
+          const nameArtist = r.nameArtist?.value || '—';
+
+          // prefer ?imgUrl (from your SPARQL), fall back to other vars if present
+          const imgUrl = (r.imgUrl?.value || r.bildImage?.value || r.bild?.value || '').trim();
+
+          // quick image test (jpg/png/gif/webp) — note single backslashes in the regex
+          const isImage = /\.(jpe?g|png|gif|webp|svg)(\?|$)/i.test(imgUrl);
+
+          const metaHtml = `<div class="meta">
+            <div><strong>Artwork</strong>${escapeHtml(nameArt)}</div>
+            <div><strong>Location</strong>${escapeHtml(nameLoc)}</div>
+            <div><strong>Artist</strong>${escapeHtml(nameArtist)}</div>
+          </div>`;
+
+          const thumbHtml = isImage
+            ? `<div class="thumb-wrap"><a href="${escapeHtml(imgUrl)}" target="_blank" rel="noopener"><img class="thumb" src="${escapeHtml(imgUrl)}" alt="${escapeHtml(nameArt)}"></a></div>`
+            : `<div class="thumb-wrap"></div>`;
+
+          return `<div class="item">${metaHtml}${thumbHtml}</div>`;
+        });
+        const itemsHtml = items.join('');
+        const popupContent = `<div class="popup-list">${itemsHtml}</div>`;
+
+        // NEW: ensure the popup will be fully visible in the current map view
+        const popupWidth = 520;    // must match .popup-list width
+        const popupHeight = 300;   // must match .popup-list height
+        const margin = 12;         // padding between popup and map border
+
+        const mapSize = map.getSize();
+        const markerPoint = map.latLngToContainerPoint(latlng);
+
+        // horizontal: ensure popup won't overflow left/right.
+        const minX = popupWidth / 2 + margin;
+        const maxX = Math.max(mapSize.x - popupWidth / 2 - margin, minX);
+        const desiredX = Math.min(Math.max(markerPoint.x, minX), maxX);
+
+        // vertical: popup is shown above the marker, so top of popup will be marker.y - popupHeight.
+        const minY = popupHeight + margin;
+        const maxY = Math.max(mapSize.y - margin, minY);
+        const desiredY = Math.min(Math.max(markerPoint.y, minY), maxY);
+
+        const delta = L.point(desiredX - markerPoint.x, desiredY - markerPoint.y);
+
+        // open popup after panning (if needed)
+        map.once('moveend', () => {
+          const popup = L.popup({
+            maxWidth: popupWidth + 40,
+            minWidth: 200,
+            closeButton: true,
+            autoPan: false // we handle panning manually
+          })
+          .setLatLng(latlng)
+          .setContent(popupContent)
+          .openOn(map);
+        });
+
+        if (Math.abs(delta.x) < 1 && Math.abs(delta.y) < 1) {
+          map.fire('moveend');
+        } else {
+          map.panBy(L.point(delta.x, -delta.y * 1.3), { animate: true, duration: 0.25 });
+        }
+      });
+
+    markers.push(m);
+  }
+
+  // 5) Fit map to markers if we have any
+  if (markers.length) {
+    const group = L.featureGroup(markers);
+    map.fitBounds(group.getBounds().pad(0.2));
+  } else {
+    console.warn('No markers created - check SPARQL response for eLat/eLon bindings. See console logs.');
+  }
+})();
+</script>
+
+### An Interactive Exploration: The AI Artist Storyteller
+
+To move beyond traditional data visualization and offer a more narrative perspective on our dataset, we developed an interactive tool that brings the artists within the knowledge graph to life. This component allows users to select an artist and dynamically generate a short, first-person story that recounts their career and achievements based on the available factual data.
+
+The process is driven by a combination of live data retrieval and generative AI. Here is a brief overview of the workflow:
+
+1.  **Data Retrieval:** When an artist is selected, the browser sends a SPARQL query to our knowledge graph via a Python Flask proxy. This query gathers key information about the artist's known works, including their creation periods, funders, art forms, and mediums.
+2.  **Prompt Engineering:** The retrieved data is formatted into a structured text. This text is then sent to our backend and embedded into a carefully designed prompt, which instructs the AI to act as the selected artist. The prompt specifically directs the model to create a concise, factual account using *only* the data provided.
+3.  **AI-Powered Generation:** The backend uses the Groq API to pass the complete prompt to the `meta-llama/llama-4-scout-17b-16e-instruct` model. The AI then synthesizes the factual data into a cohesive, first-person narrative.
+4.  **Display:** The final story is returned to the user's browser and displayed, offering an engaging and personal glimpse into the artist's life and work as represented in our data.
+
+This interactive page brings the data from the knowledge graph to life. Select an artist from the list, and an AI will generate a unique story from their perspective, based on real data about their works, funders, and places of activity.
+
+<div class="llm-interactive-area">
+    <p><b>1. Select an Artist:</b></p>
+    <select id="artist-select" disabled>
+        <option>Loading artists from the knowledge graph...</option>
+    </select>
+
+    <button id="generate-story-btn" disabled><b>2. Generate Story</b></button>
+    <hr>
+    <h3>The Story of...</h3>
+    <div id="story-output">
+        <p>Please select an artist and click "Generate Story".</p>
+    </div>
+</div>
+
+<style>
+    .llm-interactive-area {
+        background-color: #f9f9f9;
+        border: 1px solid #ddd;
+        padding: 20px;
+        border-radius: 8px;
+        font-family: sans-serif;
+    }
+    #artist-select {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 15px;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+        background-color: white;
+    }
+    #generate-story-btn {
+        padding: 12px 18px;
+        font-size: 16px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+    #generate-story-btn:disabled {
+        background-color: #cccccc;
+        cursor: not-allowed;
+    }
+    #generate-story-btn:hover:not(:disabled) {
+        background-color: #0056b3;
+    }
+    #story-output {
+        margin-top: 20px;
+        padding: 15px;
+        background-color: white;
+        border: 1px solid #eee;
+        border-radius: 4px;
+        white-space: pre-wrap;
+        line-height: 1.6;
+        min-height: 100px;
+    }
+</style>
+
+<script>
+    (() => {
+        // --- CONFIGURATION ---
+        const SPARQL_PROXY_ENDPOINT = "http://localhost:5001/sparql";
+        const AI_BACKEND_ENDPOINT = "http://localhost:5001/generate-story";
+
+        // --- DOM ELEMENTS ---
+        const artistSelect = document.getElementById('artist-select');
+        const generateBtn = document.getElementById('generate-story-btn');
+        const storyOutput = document.getElementById('story-output');
+
+        /**
+         * A reusable function to safely send SPARQL queries via the backend proxy.
+         * @param {string} query - The SPARQL query.
+         * @returns {Promise<Array>} - A promise that resolves with the results (bindings).
+         */
+        async function querySparql(query) {
+            const url = new URL(SPARQL_PROXY_ENDPOINT);
+            url.searchParams.append('query', query);
+            url.searchParams.append('format', 'json');
+            
+            const response = await fetch(url, { headers: { 'Accept': 'application/sparql-results+json' } });
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`SPARQL query failed with status ${response.status}: ${errorText}`);
+            }
+            const json = await response.json();
+            return json?.results?.bindings || [];
+        }
+
+        /**
+         * Populates the dropdown menu with all artists from the dataset.
+         */
+        async function populateArtistsDropdown() {
+            // *** CORRECTED QUERY ***
+            // This query now uses schema:VisualArtwork and schema:creator as per your data model.
+            const artistQuery = `
+                PREFIX schema: <http://schema.org/>
+                PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+                SELECT DISTINCT ?artist ?artistLabel WHERE {
+                    ?work a schema:VisualArtwork ;
+                          schema:creator ?artist .
+                    ?artist rdfs:label ?artistLabel .
+                } ORDER BY ?artistLabel`;
+            
+            try {
+                const artists = await querySparql(artistQuery);
+                if (artists.length === 0) {
+                    artistSelect.innerHTML = '<option>No artists found.</option>';
+                    return;
+                }
+                artistSelect.innerHTML = '<option value="">-- Please select an artist --</option>';
+                artists.forEach(artist => {
+                    if (artist.artist?.value && artist.artistLabel?.value) {
+                        const option = document.createElement('option');
+                        option.value = artist.artist.value;
+                        option.textContent = artist.artistLabel.value;
+                        artistSelect.appendChild(option);
+                    }
+                });
+                artistSelect.disabled = false;
+                generateBtn.disabled = false;
+            } catch (error) {
+                console.error("Error populating the artist list:", error);
+                artistSelect.innerHTML = '<option>Error loading artists</option>';
+            }
+        }
+        
+        async function generateStoryWorkflow() {
+            const artistUri = artistSelect.value;
+            const artistName = artistSelect.options[artistSelect.selectedIndex].text;
+            if (!artistUri) {
+                storyOutput.innerHTML = "<p>Please select an artist from the list first.</p>";
+                return;
+            }
+            storyOutput.innerHTML = "<p>Gathering data and contacting the AI... please wait...</p>";
+            generateBtn.disabled = true;
+
+            try {
+                // *** CORRECTED QUERY ***
+                // This query now also uses schema:creator to find the works for the selected artist.
+                const artworksQuery = `
+                    PREFIX schema: <http://schema.org/>
+                    PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+                    PREFIX cto: <https://nfdi4culture.de/ontology#>
+                    SELECT DISTINCT ?workLabel ?funderLabel ?creationPeriod ?artform ?artMedium
+                    WHERE {
+                        ?work schema:creator <${artistUri}> .
+                        
+                        OPTIONAL { ?work rdfs:label ?workLabel . }
+                        OPTIONAL { 
+                            ?work schema:funder ?funder . 
+                            ?funder rdfs:label ?funderLabel . 
+                        }
+                        OPTIONAL { ?work cto:creationPeriod ?creationPeriod . }
+                        OPTIONAL { ?work schema:artform ?artform . }
+                        OPTIONAL { ?work schema:artMedium ?artMedium . }
+                    } 
+                    LIMIT 150`;
+                const artworkResults = await querySparql(artworksQuery);
+                if (artworkResults.length === 0) {
+                    storyOutput.innerHTML = '<p>No detailed artwork data could be found for this artist to generate a story.</p>';
+                    generateBtn.disabled = false;
+                    return;
+                }
+                const formattedData = artworkResults.map(r => {
+                    let parts = [];
+                    if (r.workLabel?.value) parts.push(`my work "${r.workLabel.value}"`);
+                    if (r.creationPeriod?.value) parts.push(`created in the period of "${r.creationPeriod.value}"`);
+                    if (r.artform?.value) parts.push(`using the art form "${r.artform.value}"`);
+                    if (r.artMedium?.value) parts.push(`with the medium "${r.artMedium.value}"`);
+                    if (r.funderLabel?.value) parts.push(`funded by ${r.funderLabel.value}`);
+                    return `- ${parts.join(', ')}`;
+                }).join('\\n');
+
+                const aiResponse = await fetch(AI_BACKEND_ENDPOINT, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ artistName, artistData: formattedData })
+                });
+                if (!aiResponse.ok) throw new Error(`Backend API call failed with status ${aiResponse.status}`);
+                const storyData = await aiResponse.json();
+                storyOutput.innerHTML = storyData.story;
+            } catch (error) {
+                console.error("Error in story generation workflow:", error);
+                storyOutput.innerHTML = `<p style="color: red;">An error occurred. Please check the browser console for details.</p>`;
+            } finally {
+                generateBtn.disabled = false;
+            }
+        }
+
+        // --- INITIALIZATION ---
+        generateBtn.addEventListener('click', generateStoryWorkflow);
+        populateArtistsDropdown();
+    })();
+</script>

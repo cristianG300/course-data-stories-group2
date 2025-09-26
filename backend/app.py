@@ -5,6 +5,7 @@ from groq import Groq
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from dotenv import load_dotenv
+import re
 
 # Load environment variables from .env file
 load_dotenv()
@@ -31,6 +32,20 @@ try:
 except KeyError:
     raise RuntimeError("GEMINI_API_KEY not found or is empty. Please check your .env file.")
 
+def format_special_words(text):
+    """Finds words like ALL_CAPS_WITH_UNDERSCORES and formats them nicely."""
+    
+    # This pattern finds words with at least one underscore,
+    # consisting only of uppercase letters.
+    pattern = r'\b[A-Z]+(?:_[A-Z]+)+\b'
+
+    def replace_func(match):
+        # Takes a found word (e.g., "FRESCO_PAINTING_TECHNIQUE")
+        # and converts it to "fresco painting technique"
+        return match.group(0).replace('_', ' ').lower()
+
+    return re.sub(pattern, replace_func, text)
+
 @app.route('/generate-story', methods=['POST'])
 def generate_story():
     """Endpoint to receive artist data and return a generated story."""
@@ -48,7 +63,7 @@ def generate_story():
         - Your significant works.
         - The time periods of your creations
         - The specific locations where you created them
-        - Your funders or patrons.
+        - Your funders.
         - The art forms (e.g., painting) and mediums (e.g., fresco) you used.
     """
     
@@ -85,6 +100,8 @@ def generate_story():
         #     raise RuntimeError("Gemini model is not initialized.")
         # response = gemini_model.generate_content(user_prompt)
         # story = response.text
+
+        story = format_special_words(story)
     
         return jsonify({"story": story})
 
@@ -106,25 +123,21 @@ def sparql_proxy():
     endpoint, and returns the response.
     """
     try:
-        if request.method == 'POST':
-            query = request.data
-            headers = {
-                'Content-Type': request.headers.get('Content-Type'),
-                'Accept': request.headers.get('Accept')
-            }
-        else: # GET
-            query = None # GET requests use params, not data
-            headers = {'Accept': 'application/sparql-results+json'}
-        
-        # Make the request to the real SPARQL endpoint
+        # For GET requests, data comes from URL parameters (request.args)
+        # For POST requests, data comes from the request body (request.form)
+        params_to_forward = request.args if request.method == 'GET' else None
+        data_to_forward = request.form if request.method == 'POST' else None
+
+        # Forward the request to the real SPARQL endpoint
         response = requests.request(
             method=request.method,
             url=REAL_SPARQL_ENDPOINT,
-            params=request.args,
-            data=query,
-            headers=headers,
-            timeout=30 # 30-second timeout
+            params=params_to_forward,
+            data=data_to_forward,
+            headers={'Accept': request.headers.get('Accept')},
+            timeout=120 # 120-second timeout
         )
+        
         # Return the response from the SPARQL endpoint directly to the browser
         return response.content, response.status_code, response.headers.items()
 
