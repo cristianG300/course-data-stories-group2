@@ -1,3 +1,6 @@
+NFDI4Culture Data Story
+{: .text-overline-m}
+
 # A Data Story about analyzing research data on baroque artworks in Germany and their associated artists
 
 /// html | div[class='tile']
