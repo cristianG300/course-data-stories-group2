@@ -36,6 +36,7 @@ This query counts all artworks grouped by each artist and sorted in a descending
 ///
 
 ### SPARQL query 02: find additional images from Bildindex der Kunst & Architektur
+To find additional artworks from the Bildindex dataset, the following SPARQL query is being used. By looking into the links at column 'bildindexEntity' one can find additional insights to his or her artist of interest, such as other artworks that are not included in the NFDI4Culture dataset, additional images from different perspectives or in different scales, historical information, such as when photographers took pictures of an artwork, who the photographers were, additional notes on the artwork, etc.
 
 /// details | **Show SPARQL query 02**
     type: plain
@@ -45,7 +46,7 @@ This query counts all artworks grouped by each artist and sorted in a descending
 ///
 
 <p style="color: gray; font-style: italic;">
-  Hint: The query loading time may be longer due to large amounts of data (11,734 Bildindex entries).
+  Hint: The query loading time may be longer due to large amounts of data (approximately 11,700 Bildindex entries).
 </p>
 
 /// details | **Show query result 02**

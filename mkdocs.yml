@@ -3,8 +3,6 @@ theme:
   name: nfdi4culture
   language: en
 
-repo_url: https://gitlab.rlp.net/adwmainz/nfdi4culture/knowledge-graph/shmarql/datastories
-
 plugins:
   - search
 

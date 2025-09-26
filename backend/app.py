@@ -23,14 +23,14 @@ except Exception as e:
     groq_client = None
 
 # Configure and Initialize Gemini Client
-try:
+""" try:
     api_key = os.environ["GEMINI_API_KEY"]
     if not api_key:
         raise KeyError
     genai.configure(api_key=api_key)
     model = genai.GenerativeModel('gemini-1.5-flash-latest')
 except KeyError:
-    raise RuntimeError("GEMINI_API_KEY not found or is empty. Please check your .env file.")
+    raise RuntimeError("GEMINI_API_KEY not found or is empty. Please check your .env file.") """
 
 def format_special_words(text):
     """Finds words like ALL_CAPS_WITH_UNDERSCORES and formats them nicely."""
