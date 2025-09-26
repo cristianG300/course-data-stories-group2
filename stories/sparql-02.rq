@@ -1,0 +1,27 @@
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX schema: <http://schema.org/>
+PREFIX cto: <https://nfdi4culture.de/ontology#>
+PREFIX n4c: <https://nfdi4culture.de/id/>
+
+SELECT DISTINCT 
+  ?artistName
+  ?bildindexEntity
+  ?bildName
+WHERE {
+  # 1) get all GND-IDs from the E6077 dataset
+  ?art cto:elementOf n4c:E6077 ;
+      schema:creator ?creatorGND .
+
+  # name of the artist
+  ?creatorGND rdfs:label ?artistName .
+
+  # 2) Find all triples in which these GNDs are objects.
+  ?bildindexEntity ?predicate ?creatorGND .
+
+  # 3) Only filter subjects that refer to bildindex.de
+  FILTER regex(str(?bildindexEntity), "https?://(www\\.)?bildindex\\.de/")
+
+  # 4) name of the artwork
+  ?bildindexEntity rdfs:label ?bildName .
+}
+ORDER BY ?creatorGND ?bildindexEntity

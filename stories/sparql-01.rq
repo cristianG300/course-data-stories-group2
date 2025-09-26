@@ -1,27 +1,44 @@
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX rdfs:   <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX schema: <http://schema.org/>
-PREFIX cto: <https://nfdi4culture.de/ontology#>
-PREFIX n4c: <https://nfdi4culture.de/id/>
+PREFIX cto:    <https://nfdi4culture.de/ontology#>
+PREFIX n4c:    <https://nfdi4culture.de/id/>
 
-SELECT DISTINCT 
+SELECT
+  ?creatorGND
   ?artistName
-  ?bildindexEntity
-  ?bildName
+  (?countE6077 + ?countBildindex AS ?countTotal)
+  ?countE6077
+  ?countBildindex
 WHERE {
-  # 1) alle GND-IDs aus E6077
-  ?art cto:elementOf n4c:E6077 ;
-      schema:creator ?creatorGND .
+  # E6077 counts
+  {
+    SELECT ?creatorGND (COUNT(DISTINCT ?art) AS ?countE6077)
+    WHERE {
+      ?art cto:elementOf n4c:E6077 ;
+           a/rdfs:subClassOf* schema:VisualArtwork ;
+           (schema:creator|schema:artist) ?creatorGND .
+    }
+    GROUP BY ?creatorGND
+  }
 
-  ?creatorGND rdfs:label ?artistName .
+  # Bildindex counts (left join so artists with 0 still show up)
+  OPTIONAL {
+    SELECT ?creatorGND (COUNT(DISTINCT ?bild) AS ?_countBildindex)
+    WHERE {
+      ?bild ?p ?creatorGND .
+      FILTER regex(str(?bildindexEntity), "https?://(www\\.)?bildindex\\.de/")
+    }
+    GROUP BY ?creatorGND
+  }
 
-  # 2) finde alle Tripel, in denen diese GNDs Objekt sind
-  ?bildindexEntity ?predicate ?creatorGND .
+  # normalize OPTIONAL -> 0
+  BIND(COALESCE(?_countBildindex, 0) AS ?countBildindex)
 
-  # 3) filtere nur die Subjects, die auf bildindex.de verweisen
-  FILTER regex(str(?bildindexEntity), "https?://(www\\.)?bildindex\\.de/")
-
-  # 4) show the name of the artwork
-  ?bildindexEntity rdfs:label ?bildName .
+  # Label (sample to avoid duplicates)
+  OPTIONAL {
+    SELECT ?creatorGND (SAMPLE(?lbl) AS ?artistName)
+    WHERE { ?creatorGND rdfs:label ?lbl }
+    GROUP BY ?creatorGND
+  }
 }
-ORDER BY ?creatorGND ?bildindexEntity
-LIMIT 999
+ORDER BY DESC(?countTotal)
