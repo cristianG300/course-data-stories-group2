@@ -13,7 +13,6 @@ WHERE {
       schema:creator ?creatorGND .
 
   ?creatorGND rdfs:label ?artistName .
-
   # 2) finde alle Tripel, in denen diese GNDs Objekt sind
   ?bildindexEntity ?predicate ?creatorGND .
 

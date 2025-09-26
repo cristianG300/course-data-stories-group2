@@ -1,7 +1,6 @@
 nav:
-  - index.md
+  - Home: index.md
   - Stories:
-      - Example story: story/index.md
-      - 01 An Italian Data Journey: story/E6263/index.md
+      - Data Story on baroque artworks in Germany: course/index.md
   - Contribute: contribute.md
   - SPARQL Exploration: "/shmarql"
